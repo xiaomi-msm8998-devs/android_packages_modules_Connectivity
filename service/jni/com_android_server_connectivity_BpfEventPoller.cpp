@@ -29,7 +29,7 @@ using android::net::eventpolling::LoopbackEventHandler;
 namespace android {
 
 static void nativeInitLoopbackEventConsumer(JNIEnv *env, jclass clazz) {
-    LoopbackEventHandler::Start();
+    //LoopbackEventHandler::Start();
 }
 
 static const JNINativeMethod gMethods[] = {

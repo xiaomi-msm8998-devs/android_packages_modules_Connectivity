@@ -24,6 +24,7 @@
 #include "NetdUpdatablePublic.h"
 
 static android::net::BpfHandler sBpfHandler;
+static bool sBpfAvailable = false;
 
 int libnetd_updatable_init(const char* cg2_path) {
     android::base::InitLogging(/*argv=*/nullptr);
@@ -31,16 +32,20 @@ int libnetd_updatable_init(const char* cg2_path) {
 
     android::base::Result<void> ret = sBpfHandler.init(cg2_path);
     if (!ret.ok()) {
-        LOG(ERROR) << __func__ << ": Failed: " << ret.error().message();
-        abort();
+        LOG(WARNING) << __func__ << ": BPF unavailable; disabling BPF network "
+                     << "accounting: " << ret.error();
+        return 0;
     }
+    sBpfAvailable = true;
     return 0;
 }
 
 int libnetd_updatable_tagSocket(int sockFd, uint32_t tag, uid_t chargeUid, uid_t realUid) {
+    if (!sBpfAvailable) return 0;
     return sBpfHandler.tagSocket(sockFd, tag, chargeUid, realUid);
 }
 
 int libnetd_updatable_untagSocket(int sockFd) {
+    if (!sBpfAvailable) return 0;
     return sBpfHandler.untagSocket(sockFd);
 }

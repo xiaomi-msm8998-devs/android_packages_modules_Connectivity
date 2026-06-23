@@ -45,6 +45,7 @@ import java.util.Objects;
  */
 public class LocalNetEventListener {
     private static final String TAG = LocalNetEventListener.class.getSimpleName();
+    private static final boolean SUPPORTS_BPF_RINGBUF = false;
     // See {@link android.app.AppOpsManager#OPSTR_ACCESS_LOCAL_NETWORK}
     // TODO: make this string visible to mainline
     private static final String APP_OP = "android:access_local_network";
@@ -70,9 +71,10 @@ public class LocalNetEventListener {
         mAppOpsManager = context.getSystemService(AppOpsManager.class);
         mDeps = deps;
         mLooper = looper;
-        mMetricsEnabled = metricsEnabled;
-        mNoteOpsEnabled = noteOpsEnabled;
-        mRingbufFd = mDeps.getFileDescriptor();
+        mMetricsEnabled = SUPPORTS_BPF_RINGBUF && metricsEnabled;
+        mNoteOpsEnabled = SUPPORTS_BPF_RINGBUF && noteOpsEnabled;
+        mRingbufFd = (mMetricsEnabled || mNoteOpsEnabled)
+                ? mDeps.getFileDescriptor() : null;
     }
 
     public static class Dependencies {
